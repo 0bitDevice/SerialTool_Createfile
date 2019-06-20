@@ -70,6 +70,7 @@ public:
 	BOOL		m_bOpenComm;
 	BOOL		m_bTimerStart;
 	CToolTipCtrl m_tooltip;
+	TCHAR		m_SendPackStrArr[1000];
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CSerialToolDlg)
 	protected:

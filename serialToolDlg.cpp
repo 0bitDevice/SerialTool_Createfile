@@ -82,6 +82,7 @@ CSerialToolDlg::CSerialToolDlg(CWnd* pParent /*=NULL*/)
 	m_bTimerStart = FALSE;
 	m_bRecordRecv = FALSE;
 	m_RecvTimestampChk = FALSE;
+	memset(m_SendPackStrArr, 0, sizeof(m_SendPackStrArr));
 	//}}AFX_DATA_INIT
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -229,6 +230,7 @@ BOOL CSerialToolDlg::OnInitDialog()
 	m_tooltip.AddTool(GetDlgItem(IDC_EDIT_SENDCYCLE), "1~999");
 	m_tooltip.Activate(TRUE);
 
+	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS); //提升程序优先级
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -324,7 +326,7 @@ void CSerialToolDlg::OnButtonOpencom()
 	else
 	{
 		OnSelchangeComboPort();
-		SetTimer(2, 200, NULL);		//打开接收区显示刷新的定时器
+		SetTimer(2, 20, NULL);		//打开接收区显示刷新的定时器
 		m_PortNum.Delete(0, 3);
 		BYTE BParity = NOPARITY;
 		if(!m_Parity.Compare("N"))
@@ -466,12 +468,18 @@ void CSerialToolDlg::OnSelchangeComboFlow()
 void CSerialToolDlg::OnButtonOpensendfile() 
 {
 	// TODO: Add your control notification handler code here
-    LPCTSTR szFilter = "文件 (*.txt)|*.txt|所有文件 (*.*)|*.*||";
+    LPCTSTR szFilter = "所有文件 (*.*)|*.*||";
 	CString strPathName;
 	
 	if (m_fileSend.m_pStream)
 	{	
-		OnButtonSettimer();
+		m_bTimerStart = FALSE;
+		m_ProgressSendFile.SetPos(0);
+		m_SetTimerBut.SetIcon(AfxGetApp()->LoadIcon(IDI_ICON_TIMERSTART));
+		KillTimer(1);
+		KillTimer(3);
+		m_SendCycleEdit.EnableWindow(TRUE);
+
 		m_fileSend.Close();
 		m_OpensendfileBut.SetWindowText("打开发送文件");
 		m_SendEdit.EnableWindow(TRUE);
@@ -501,7 +509,6 @@ void CSerialToolDlg::OnButtonOpensendfile()
 		m_SendEdit.SetWindowText(strPathName);
 		m_SendEdit.EnableWindow(FALSE);
 
-		
 		m_ProgressSendFile.SetPos(0);
 		m_OpensendfileBut.SetWindowText("关闭发送文件");
 
@@ -522,7 +529,9 @@ void CSerialToolDlg::OnButtonOpensendfile()
 			int ret = 0, retCount = 0;
 			while (0 == ret && retCount < 3)		//跳过3行非法字符串，!!!具体行数再论!!!
 			{
-				ret = CSerialToolDlgFunc::ProcessingData(m_pFileCurrentIndex, m_SendPackStr);
+				TCHAR* ptestArr = m_SendPackStrArr;
+//				ret = CSerialToolDlgFunc::ProcessingData(m_pFileCurrentIndex, m_SendPackStr);
+				ret = CSerialToolDlgFunc::ProcessingData(&m_pFileCurrentIndex, &ptestArr);
 				++retCount;
 			}
 		}
@@ -538,7 +547,6 @@ BOOL CSerialToolDlg::PreTranslateMessage(MSG* pMsg)
 	{
 		m_tooltip.RelayEvent(pMsg);
 	}
-
 
     return CDialog::PreTranslateMessage(pMsg);
 }
@@ -661,13 +669,16 @@ void CSerialToolDlg::OnTimer(UINT nIDEvent)
         case 3:			//数据包发送
 			{
 				//数据包先发送确保时间，之后再读取数据以降低延迟
-				m_rtComm.WriteBuf((BYTE*)m_SendPackStr.GetBuffer(m_SendPackStr.GetLength()), m_SendPackStr.GetLength());
+//				m_rtComm.WriteBuf((BYTE*)m_SendPackStr.GetBuffer(m_SendPackStr.GetLength()), m_SendPackStr.GetLength());
+				m_rtComm.WriteBuf((BYTE*)m_SendPackStrArr, strlen(m_SendPackStrArr));
 
 				m_SendPackStr.Empty();
 				int ret = 0, retCount = 0;
 				while (0 == ret && retCount < 3)		//跳过3行非法字符串，!!!具体行数再论!!!
 				{
-					ret = CSerialToolDlgFunc::ProcessingData(m_pFileCurrentIndex, m_SendPackStr);
+					TCHAR* ptestArr = m_SendPackStrArr;
+//					ret = CSerialToolDlgFunc::ProcessingData(m_pFileCurrentIndex, m_SendPackStr);
+					ret = CSerialToolDlgFunc::ProcessingData(&m_pFileCurrentIndex, &ptestArr);
 					++retCount;
 				}
 			}

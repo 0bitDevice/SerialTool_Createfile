@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "serialTool.h"
 #include "SerialToolDlgFunc.h"
+#include "string.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -224,6 +225,7 @@ static TCHAR* readLine_By0A(TCHAR* dst,const TCHAR* &src)
 	*--dst = '\0';		//'\0'替换'\n'
 	return ret;
 }
+
 int CSerialToolDlgFunc::ProcessingData(TCHAR* &pFileText, CString& strData)
 {
 	CString strLine;
@@ -346,6 +348,250 @@ int CSerialToolDlgFunc::ProcessingData(TCHAR* &pFileText, CString& strData)
 	return phraseCount;
 }
 
+int CSerialToolDlgFunc::ProcessingData(TCHAR* &pFileText, TCHAR* &strData)
+{
+	int phraseCount = 0;				//指令计数，用于判断每包的指令数是否是完整6条
+	TCHAR arrlActual[200] = {0};
+	TCHAR* pFileTextPre;
+	if (*pFileText == '\0')
+	{
+		return -1;
+	}
+
+	strData[0] = '\0';					//用于strcat函数的字符串末尾识别
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGGA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGSA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+		
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGSA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+	
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNRMC", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+		
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNVTG", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+	
+	memset(arrlActual, 0, 200);
+	pFileTextPre = pFileText;
+	readLine_By0A(arrlActual, pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNDHV", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			pFileText = pFileTextPre;
+		}
+	}
+
+	if (0 == phraseCount)			//当前语句非法，需要额外处理，跳过这一行!!!!!!
+	{
+		memset(arrlActual, 0, 200);
+		readLine_By0A(arrlActual, pFileText);
+	}
+	
+	return phraseCount;
+}
+
+int CSerialToolDlgFunc::ProcessingData(TCHAR* *pFileText, TCHAR* *strData)
+{
+	int phraseCount = 0;				//指令计数，用于判断每包的指令数是否是完整6条
+	TCHAR arrlActual[200] = {0};
+	TCHAR* pFileTextPre;
+	if (**pFileText == '\0')
+	{
+		return -1;
+	}
+
+	*strData[0] = '\0';					//用于strcat函数的字符串末尾识别
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGGA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGSA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+		
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNGSA", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+	
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNRMC", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+		
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNVTG", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+	
+	memset(arrlActual, 0, 200);
+	pFileTextPre = *pFileText;
+	readLine_By0A(arrlActual, *pFileText);
+	if(arrlActual[0] != '\0')
+	{
+		if(strncmp(arrlActual, "$GNDHV", 6) == 0)
+		{
+			sprintf(arrlActual, "%s\r\n", arrlActual);
+			strcat(*strData, arrlActual);
+			++phraseCount;
+		}
+		else
+		{
+			*pFileText = pFileTextPre;
+		}
+	}
+
+	if (0 == phraseCount)			//当前语句非法，需要额外处理，跳过这一行!!!!!!
+	{
+		memset(arrlActual, 0, 200);
+		readLine_By0A(arrlActual, *pFileText);
+	}
+	
+	return phraseCount;
+}
+
 int CSerialToolDlgFunc::RecordData(CStdioFile& file, CString& strData, BOOL bRecTime)
 {
 	SYSTEMTIME		sysTime;
@@ -378,6 +624,5 @@ int CSerialToolDlgFunc::RecordData(CStdioFile& file, CString& strData, BOOL bRec
 	strDataTimed = strTimeErr + strTime + strData;
 	file.Write(strDataTimed, strDataTimed.GetLength());
 	file.Flush();
-
 	return 0;
 }

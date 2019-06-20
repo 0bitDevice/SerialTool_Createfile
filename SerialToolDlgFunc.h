@@ -21,6 +21,8 @@ public:
 	static int ConvertCString2Hex(CString str, CByteArray& senddata);
 	static int ProcessingData(CStdioFile& file, CString& strData);
 	static int ProcessingData(TCHAR* &pFileText, CString& strData);
+	static int ProcessingData(TCHAR* &pFileText, TCHAR* &strData);
+	static int ProcessingData(TCHAR* *pFileText, TCHAR* *strData);
 	static int RecordData(CStdioFile& file, CString& strData, BOOL bRecTime = FALSE);
 };
 
