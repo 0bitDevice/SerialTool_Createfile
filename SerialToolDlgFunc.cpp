@@ -213,6 +213,7 @@ int CSerialToolDlgFunc::ProcessingData(CStdioFile& file, CString& strData)
 	
 	return phraseCount;
 }
+
 static TCHAR* readLine_By0A(TCHAR* dst,const TCHAR* &src)
 {
 	if (*src == '\0')
